@@ -21,10 +21,14 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build Docker image
+    - name: Build and Push Docker image
       run: |
         docker build -t ${{ secrets.DOCKER_USERNAME }}/practice-app:latest ./practice-app
-
-    - name: Push Docker image
-      run: |
         docker push ${{ secrets.DOCKER_USERNAME }}/practice-app:latest
+
+    - name: Deploy to Kubernetes
+      uses: actions-hub/kubectl@master
+      env:
+        KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+      with:
+        args: set image deployment/nginx-deployment nginx-container=${{ secrets.DOCKER_USERNAME }}/practice-app:latest -n nginx
